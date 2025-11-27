@@ -1,20 +1,21 @@
-
 import { Badge } from "@/src/helper/badge";
 import { Button } from "@/src/helper/button";
 import { Slider } from "@/src/helper/slider";
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  ChevronsLeft, 
-  ChevronsRight 
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 
 interface ExecutionControlsProps {
   currentStep: number;
   totalSteps: number;
   isPlaying: boolean;
+  speed: number;
+  onSpeedChange: (speed: number) => void;
   onStepChange: (step: number) => void;
   onPlay: () => void;
   onPause: () => void;
@@ -37,6 +38,8 @@ export const ExecutionControls = ({
   onFirst,
   onLast,
   handleReset,
+  speed,
+  onSpeedChange,
 }: ExecutionControlsProps) => {
   return (
     <div className="space-y-4 p-4 bg-card rounded-lg border">
@@ -46,7 +49,7 @@ export const ExecutionControls = ({
             Step {currentStep + 1} / {totalSteps}
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button onClick={handleReset} variant="outline" className="ml-auto">
               Reset
@@ -59,7 +62,7 @@ export const ExecutionControls = ({
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          
+
           <Button
             size="sm"
             variant="outline"
@@ -68,16 +71,16 @@ export const ExecutionControls = ({
           >
             <SkipBack className="h-4 w-4" />
           </Button>
-          
+
           {isPlaying ? (
             <Button size="sm" onClick={onPause} variant="default">
               <Pause className="h-4 w-4 mr-2" />
               Pause
             </Button>
           ) : (
-            <Button 
-              size="sm" 
-              onClick={onPlay} 
+            <Button
+              size="sm"
+              onClick={onPlay}
               variant="default"
               disabled={currentStep === totalSteps - 1}
             >
@@ -85,7 +88,7 @@ export const ExecutionControls = ({
               Play
             </Button>
           )}
-          
+
           <Button
             size="sm"
             variant="outline"
@@ -94,7 +97,7 @@ export const ExecutionControls = ({
           >
             <SkipForward className="h-4 w-4" />
           </Button>
-          
+
           <Button
             size="sm"
             variant="outline"
@@ -105,15 +108,29 @@ export const ExecutionControls = ({
           </Button>
         </div>
       </div>
-      
-      <Slider
-        value={[currentStep]}
-        min={0}
-        max={totalSteps - 1}
-        step={1}
-        onValueChange={([value]) => onStepChange(value)}
-        className="w-full"
-      />
+      <div className="flex">
+        <Slider
+          value={[currentStep]}
+          min={0}
+          max={totalSteps - 1}
+          step={1}
+          onValueChange={([value]) => onStepChange(value)}
+          className="w-full"
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {speed.toFixed(2)}x
+          </span>
+          <Slider
+          min={0.25}
+            max={5}
+            step={0.25}
+            value={[speed]}
+            onValueChange={([value]) => onSpeedChange(value)}
+            className="w-32"
+          />
+        </div>
+      </div>
     </div>
   );
 };

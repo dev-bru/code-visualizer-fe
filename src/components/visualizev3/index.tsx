@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Code2 } from "lucide-react";
 import { CallStack } from "./CallStack";
 import { ExecutionControls } from "./ExecutionControls";
@@ -26,6 +26,7 @@ const VisualizeV3 = () => {
   const currentState: any = trace[currentStep];
   const BACKEND_URL = "http://localhost:8000/visualize/trace";
   const [error, setError] = useState<string | null>(null);
+  const [speed, setSpeed] = useState(1);
   const [isLocked, setIsLocked] = useState(false);
   const [hasUserEdited, setHasUserEdited] = useState(false);
   const [hasRun, setHasRun] = useState(false);
@@ -46,37 +47,14 @@ const VisualizeV3 = () => {
     const timer = setTimeout(() => {
       setCurrentStep((prev) => {
         const next = prev + 1;
-        // stop playback after we advance to the last step (runs inside timeout)
-        if (next >= trace.length - 1) {
-          setIsPlaying(false);
-        }
+        if (next >= trace.length - 1) setIsPlaying(false);
         return next;
       });
-    }, 800);
+    }, 800 / speed);
 
     return () => clearTimeout(timer);
-  }, [isPlaying, currentStep, trace.length]);
+  }, [speed, isPlaying, currentStep, trace.length]);
 
-  const handlePlay = async () => {
-    runVisualization();
-    setIsPlaying(true);
-    setIsLocked(true);
-  };
-  const handlePause = () => setIsPlaying(false);
-  const handleStepForward = () => {
-    runVisualization();
-    setIsLocked(true);
-    if (currentStep < trace.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-  const handleStepBackward = () => {
-    runVisualization();
-    setIsLocked(true);
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
   const runVisualization = async () => {
     try {
       setIsPlaying(false);
@@ -117,16 +95,90 @@ const VisualizeV3 = () => {
     setCode(code);
   };
 
-  const handleFirst = () => {
+  const handleFirst = useCallback(() => {
     runVisualization();
     setCurrentStep(0);
     setIsLocked(true);
-  };
+  }, [runVisualization, setCurrentStep, setIsLocked]);
+  
   const handleLast = () => {
     runVisualization();
     setCurrentStep(trace.length - 1);
     setIsLocked(true);
   };
+
+  const handlePlay = async () => {
+    runVisualization();
+    setIsPlaying(true);
+    setIsLocked(true);
+  };
+  const handlePause = () => setIsPlaying(false);
+  const handleStepForward = () => {
+    runVisualization();
+    setIsLocked(true);
+    if (currentStep < trace.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+  const handleStepBackward = () => {
+    runVisualization();
+    setIsLocked(true);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (isPlaying) handlePause();
+        else handlePlay();
+      }
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleStepForward();
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleStepBackward();
+      }
+
+      if (e.key === "Home") {
+        e.preventDefault();
+        handleFirst();
+      }
+
+      if (e.key === "End") {
+        e.preventDefault();
+        handleLast();
+      }
+
+      if (e.shiftKey && e.key === "ArrowUp") {
+        setSpeed(Math.min(speed + 0.25, 5));
+      }
+
+      if (e.shiftKey && e.key === "ArrowDown") {
+        setSpeed(Math.max(speed - 0.25, 0.25));
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [
+    isPlaying,
+    currentStep,
+    speed,
+    handlePlay,
+    handlePause,
+    handleStepForward,
+    handleStepBackward,
+    handleFirst,
+    handleLast,
+    setSpeed,
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,6 +216,8 @@ const VisualizeV3 = () => {
               onStepBackward={handleStepBackward}
               onFirst={handleFirst}
               onLast={handleLast}
+                speed={speed}
+                onSpeedChange={setSpeed}
               handleReset={handleReset}
             />
           ) : hasRun ? (
@@ -262,6 +316,9 @@ const VisualizeV3 = () => {
                 </p>
               )}
             </div>
+                {/* <div className="h-[300px]">
+                  <DataStructureVisualizer frame={currentState} />
+                </div> */}
           </div>
         </div>
       </main>
