@@ -22,6 +22,7 @@ interface ExecutionControlsProps {
   onStepBackward: () => void;
   onFirst: () => void;
   onLast: () => void;
+  handleReset: () => void;
 }
 
 export const ExecutionControls = ({
@@ -35,6 +36,7 @@ export const ExecutionControls = ({
   onStepBackward,
   onFirst,
   onLast,
+  handleReset,
 }: ExecutionControlsProps) => {
   return (
     <div className="space-y-4 p-4 bg-card rounded-lg border">
@@ -46,6 +48,9 @@ export const ExecutionControls = ({
         </div>
         
         <div className="flex items-center gap-2">
+          <Button onClick={handleReset} variant="outline" className="ml-auto">
+              Reset
+            </Button>
           <Button
             size="sm"
             variant="outline"
