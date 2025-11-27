@@ -40,6 +40,7 @@ const VisualizeV3 = () => {
   const currentState: any = trace[currentStep];
   const BACKEND_URL = "http://localhost:8000/visualize/trace";
   const [error, setError] = useState<string | null>(null);
+  const [speed, setSpeed] = useState(1);
 
   useEffect(() => {
     const run = async () => {
@@ -82,16 +83,13 @@ const VisualizeV3 = () => {
     const timer = setTimeout(() => {
       setCurrentStep((prev) => {
         const next = prev + 1;
-        // stop playback after we advance to the last step (runs inside timeout)
-        if (next >= trace.length - 1) {
-          setIsPlaying(false);
-        }
+        if (next >= trace.length - 1) setIsPlaying(false);
         return next;
       });
-    }, 800);
+    }, 800 / speed);
 
     return () => clearTimeout(timer);
-  }, [isPlaying, currentStep, trace.length]);
+  }, [speed, isPlaying, currentStep, trace.length]);
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
@@ -107,6 +105,58 @@ const VisualizeV3 = () => {
   };
   const handleFirst = () => setCurrentStep(0);
   const handleLast = () => setCurrentStep(trace.length - 1);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (isPlaying) handlePause();
+        else handlePlay();
+      }
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleStepForward();
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handleStepBackward();
+      }
+
+      if (e.key === "Home") {
+        e.preventDefault();
+        handleFirst();
+      }
+
+      if (e.key === "End") {
+        e.preventDefault();
+        handleLast();
+      }
+
+      if (e.shiftKey && e.key === "ArrowUp") {
+        setSpeed(Math.min(speed + 0.25, 5));
+      }
+
+      if (e.shiftKey && e.key === "ArrowDown") {
+        setSpeed(Math.max(speed - 0.25, 0.25));
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [
+    isPlaying,
+    currentStep,
+    speed,
+    handlePlay,
+    handlePause,
+    handleStepForward,
+    handleStepBackward,
+    handleFirst,
+    handleLast,
+    setSpeed,
+  ]);
 
   return (
     <>
@@ -147,6 +197,8 @@ const VisualizeV3 = () => {
                 onStepBackward={handleStepBackward}
                 onFirst={handleFirst}
                 onLast={handleLast}
+                speed={speed}
+                onSpeedChange={setSpeed}
               />
             </div>
 
@@ -180,6 +232,9 @@ const VisualizeV3 = () => {
                 <div className="h-[300px]">
                   <HeapVisualization heap={currentState?.heap} />
                 </div>
+                {/* <div className="h-[300px]">
+                  <DataStructureVisualizer frame={currentState} />
+                </div> */}
               </div>
             </div>
           </main>
