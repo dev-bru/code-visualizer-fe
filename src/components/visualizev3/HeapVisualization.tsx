@@ -1,25 +1,41 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Badge } from "@/src/helper/badge";
 import { Card } from "@/src/helper/card";
+import { renderRef } from "@/src/helper/RenderRed";
+import { EncodedValue } from "@/src/utils/types";
+import { useEffect, useRef } from "react";
 
 interface HeapVisualizationProps {
   heap: Record<string, any>;
 }
 
 export const HeapVisualization = ({ heap }: HeapVisualizationProps) => {
-  const renderHeapObject = (id: string, obj: any[]) => {
+  const lastItemRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll to the latest heap entry whenever heap changes
+  useEffect(() => {
+    if (lastItemRef.current) {
+      lastItemRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [heap]);
+
+  const entries = Object.entries(heap).sort(
+    ([a], [b]) => Number(a) - Number(b) // ensure numeric ID order
+  );
+  const renderHeapObject = (id: string, obj: any[], isLast: boolean) => {
     const [type, value, ...rest] = obj;
 
-    const renderRefOrPrimitive = (val: any) => {
-      if (Array.isArray(val) && val[0] === "REF") {
-        return `→ REF ${val[1]}`;
-      }
-      return String(val);
-    };
+    const renderRefOrPrimitive = (val: any) =>
+      renderRef(val as EncodedValue, heap);
 
     return (
       <div
         key={id}
+        data-heap-id={id}
+        ref={isLast ? lastItemRef : null}
         className="p-4 rounded-lg border-2 border-primary/20 bg-card"
       >
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
@@ -132,7 +148,9 @@ export const HeapVisualization = ({ heap }: HeapVisualizationProps) => {
 
         {Object.keys(heap).length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
-            {Object.entries(heap).map(([id, obj]) => renderHeapObject(id, obj))}
+            {Object.entries(heap).map(([id, obj], idx) =>
+              renderHeapObject(id, obj, idx === entries.length - 1)
+            )}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">

@@ -12,14 +12,15 @@ import { VariablesView } from "./VariablesView";
 import { CodeMirrorDisplay } from "./CodeMirrorDisplay";
 import { Button } from "@/src/helper/button";
 import { SAMPLE_PROGRAMS } from "@/src/helper/samples";
-
+import { ArrowsOverlay } from "@/src/helper/ArrowsOverlay";
+import { ComplexityAnalysis } from "./ComplexityAnalysis";
 
 const VisualizeV3 = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [trace, setTrace] = useState<any[]>([]);
   const currentState: any = trace[currentStep];
-  const BACKEND_URL = "http://localhost:8000/visualize/trace";
+  const BACKEND_URL = "http://localhost:8000/";
   const [error, setError] = useState<string | null>(null);
   const [speed, setSpeed] = useState(1);
   const [isLocked, setIsLocked] = useState(false);
@@ -29,6 +30,7 @@ const VisualizeV3 = () => {
   const [code, setCode] = useState(
     SAMPLE_PROGRAMS.find((p) => p.id === "factorial")?.code || ""
   );
+  const [complexityInfo, setComplexityInfo] = useState<any>(null);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -55,7 +57,7 @@ const VisualizeV3 = () => {
       setIsPlaying(false);
       setCurrentStep(0);
 
-      const res = await fetch(BACKEND_URL, {
+      const res = await fetch(BACKEND_URL + "visualize/trace", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,6 +76,19 @@ const VisualizeV3 = () => {
         return;
       }
 
+      const res2 = await fetch(BACKEND_URL + "analyze-complexity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          language: "python",
+          stdin: "",
+          timeout: 10,
+        }),
+      });
+
+      const data2 = await res2.json();
+      setComplexityInfo(data2);
       setTrace(data.trace);
       setHasUserEdited(false);
       setIsLocked(true);
@@ -95,7 +110,7 @@ const VisualizeV3 = () => {
     setCurrentStep(0);
     setIsLocked(true);
   }, [runVisualization, setCurrentStep, setIsLocked]);
-  
+
   const handleLast = () => {
     runVisualization();
     setCurrentStep(trace.length - 1);
@@ -124,10 +139,10 @@ const VisualizeV3 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="main-container flex flex-col min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
+        <div className="container px-4 py-2 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <Code2 className="h-6 w-6 text-primary" />
           </div>
@@ -144,9 +159,9 @@ const VisualizeV3 = () => {
       </header>
 
       {/* MAIN */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="px-4 py-4">
         {/* Controls always visible */}
-        <div className="mb-6">
+        <div className="mb-4">
           {isLocked ? (
             <ExecutionControls
               currentStep={currentStep}
@@ -159,8 +174,8 @@ const VisualizeV3 = () => {
               onStepBackward={handleStepBackward}
               onFirst={handleFirst}
               onLast={handleLast}
-                speed={speed}
-                onSpeedChange={setSpeed}
+              speed={speed}
+              onSpeedChange={setSpeed}
               handleReset={handleReset}
             />
           ) : hasRun ? (
@@ -196,11 +211,11 @@ const VisualizeV3 = () => {
         </div>
 
         {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
           {/* LEFT SIDE */}
-          <div className="space-y-6">
+          <div className="space-y-3 w-full">
             {/* EDITOR always visible */}
-            <div className="h-[500px]">
+            <div>
               <CodeMirrorDisplay
                 code={code}
                 onCodeChange={setCode}
@@ -210,7 +225,7 @@ const VisualizeV3 = () => {
             </div>
 
             {/* OUTPUT visible only if trace exists */}
-            <div className="h-[300px] rounded-lg border-1 border-primary/110 p-1">
+            <div className="rounded-lg border-1 border-primary/110 p-1">
               {trace.length > 0 ? (
                 <OutputDisplay stdout={currentState?.stdout} />
               ) : (
@@ -222,38 +237,40 @@ const VisualizeV3 = () => {
           </div>
 
           {/* RIGHT SIDE */}
-          <div className="space-y-6">
+          <div className="flex space-x-3 max-h-[630px] min-h-0">
             {/* Stack */}
-            <div className="h-[300px] rounded-lg border-1 border-primary/110 p-1">
-              {trace.length > 0 ? (
-                <CallStack
+            <div className="flex flex-col w-1/2 space-y-3 h-full min-h-0">
+              <div className="flex-1 rounded-lg border-1 border-primary/110 p-1 min-h-0">
+                {trace.length > 0 ? (
+                  <CallStack
                     frames={currentState?.stack_to_render ?? []}
                     heap={currentState?.heap}
                   />
-              ) : (
-                <p className="text-m text-muted-foreground p-4">
-                  Call stack will appear here.
-                </p>
-              )}
-            </div>
+                ) : (
+                  <p className="text-m text-muted-foreground p-4">
+                    Call stack will appear here.
+                  </p>
+                )}
+              </div>
 
-            {/* Variables */}
-            <div className="h-[300px] rounded-lg border-1 border-primary/110 p-1">
-              {trace.length > 0 ? (
-                <VariablesView
-                  globals={currentState?.globals ?? {}}
-                  orderedGlobals={currentState?.ordered_globals ?? []}
-                  heap={currentState?.heap ?? {}}
-                />
-              ) : (
-                <p className="text-m text-muted-foreground p-4">
-                  Variables will appear here.
-                </p>
-              )}
+              {/* Variables */}
+              <div className="flex-1 rounded-lg border-1 border-primary/110 p-1 min-h-0">
+                {trace.length > 0 ? (
+                  <VariablesView
+                    globals={currentState?.globals ?? {}}
+                    orderedGlobals={currentState?.ordered_globals ?? []}
+                    heap={currentState?.heap ?? {}}
+                  />
+                ) : (
+                  <p className="text-m text-muted-foreground p-4">
+                    Variables will appear here.
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Heap */}
-            <div className="h-[300px] rounded-lg border-1 border-primary/110 p-1">
+            <div className="w-1/2 rounded-lg border-1 border-primary/110 p-1 overflow-auto min-h-0">
               {trace.length > 0 ? (
                 <HeapVisualization heap={currentState?.heap ?? {}} />
               ) : (
@@ -262,10 +279,10 @@ const VisualizeV3 = () => {
                 </p>
               )}
             </div>
-                {/* <div className="h-[300px]">
-                  <DataStructureVisualizer frame={currentState} />
-                </div> */}
           </div>
+        </div>
+        <div className="mt-3">
+          {complexityInfo && <ComplexityAnalysis data={complexityInfo} />}
         </div>
       </main>
     </div>

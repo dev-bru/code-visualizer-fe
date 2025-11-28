@@ -3,8 +3,8 @@
 import { Card } from "@/src/helper/card";
 import { Badge } from "@/src/helper/badge";
 import { cn } from "@/src/utils/Utils";
-
-type EncodedValue = string | number | boolean | null | ["REF", number];
+import { EncodedValue } from "@/src/utils/types";
+import { renderRef } from "@/src/helper/RenderRed";
 
 interface StackFrame {
   func_name: string;
@@ -20,34 +20,7 @@ interface CallStackProps {
 }
 
 export const CallStack = ({ frames, heap }: CallStackProps) => {
-  const renderValue = (value: EncodedValue): string => {
-    // REF -> look up in heap
-    if (Array.isArray(value) && value[0] === "REF") {
-      const id = String(value[1]);
-      const entry = heap[id];
-      if (!entry) return `REF(${id})`;
-      const tag = entry[0];
-      
-      if (tag === "CLASS") {
-        const name = entry[1] as string;
-        return name; // e.g. "Node"
-      }
-      if (tag === "INSTANCE") {
-        const className = entry[1] as string;
-        return `${className} instance`; // e.g. "Node instance"
-      }
-      if (tag === "FUNCTION") {
-        const sig = entry[1] as string; // "__init__(self, data)"
-        return sig;
-      }
-      return `REF(${id})`;
-    }
-    if (value === null || typeof value !== "object") {
-      return String(value);
-    }
-    // For plain objects (rare in locals), fall back
-    return JSON.stringify(value);
-  };
+  const renderValue = (value: EncodedValue) => renderRef(value, heap);
 
   return (
     <Card className="h-full overflow-auto">
@@ -82,21 +55,26 @@ export const CallStack = ({ frames, heap }: CallStackProps) => {
                   )}
                 </div>
                 {frame.ordered_varnames.length > 0 && (
-                  <div className="space-y-1">
-                    {frame.ordered_varnames.map((varname) => (
-                      <div
-                        key={varname}
-                        className="flex gap-2 text-sm font-mono"
-                      >
-                        <span className="text-muted-foreground">
-                          {varname === "__return__" ? "return" : varname}:
-                        </span>
-                        <span className="text-foreground font-medium">
-                          {renderValue(frame.encoded_locals[varname])}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <table className="w-full text-xs font-mono">
+                    <thead>
+                      <tr className="text-muted-foreground">
+                        <th className="text-left px-1">name</th>
+                        <th className="text-left px-1">value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {frame.ordered_varnames.map((varname) => (
+                        <tr key={varname}>
+                          <td className="px-1">
+                            {varname === "__return__" ? "return" : varname}
+                          </td>
+                          <td className="px-1">
+                            {renderValue(frame.encoded_locals[varname])}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
               </div>
             ))}

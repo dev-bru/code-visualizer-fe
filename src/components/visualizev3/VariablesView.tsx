@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card } from "@/src/helper/card";
 import { Badge } from "@/src/helper/badge";
+import { EncodedValue } from "@/src/utils/types";
+import { renderRef } from "@/src/helper/RenderRed";
 
 interface VariablesViewProps {
   globals: Record<string, any>;
@@ -8,46 +10,19 @@ interface VariablesViewProps {
   heap: Record<string, any>;
 }
 
-export const VariablesView = ({ globals, orderedGlobals, heap }: VariablesViewProps) => {
-  const renderValue = (value: any): string => {
-  // Handle REF to heap
-  if (Array.isArray(value) && value[0] === "REF") {
-    const refId = String(value[1]);
-    const entry = heap[refId];
-    if (!entry) {
-      return `<ref ${refId}>`;
-    }
-
-    const [tag, payload] = entry as [string, any];
-
-    if (tag === "FUNCTION" || tag === "CLASS") {
-      // payload is the name/signature string
-      return String(payload);
-    }
-    if (tag === "INSTANCE") {
-      // payload is className
-      return `${payload} instance`;
-    }
-    if (tag === "LIST") {
-      return JSON.stringify(payload); // payload is the list contents
-    }
-    if (tag === "DICT") {
-      return JSON.stringify(payload); // payload is the dict object {name, age}
-    }
-    return `<ref ${refId}>`;
-  }
-
-  if (value === null || typeof value !== "object") {
-    return String(value);
-  }
-  return JSON.stringify(value);
-};
-
+export const VariablesView = ({
+  globals,
+  orderedGlobals,
+  heap,
+}: VariablesViewProps) => {
+  const renderValue = (value: EncodedValue) => renderRef(value, heap);
 
   return (
     <Card className="h-full overflow-auto">
       <div className="p-4">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Global Variables</h3>
+        <h3 className="text-lg font-semibold mb-4 text-foreground">
+          Global Variables
+        </h3>
         <div className="space-y-2">
           {orderedGlobals.length > 0 ? (
             orderedGlobals.map((varname) => (
@@ -66,7 +41,9 @@ export const VariablesView = ({ globals, orderedGlobals, heap }: VariablesViewPr
               </div>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">No global variables yet</p>
+            <p className="text-sm text-muted-foreground">
+              No global variables yet
+            </p>
           )}
         </div>
       </div>
