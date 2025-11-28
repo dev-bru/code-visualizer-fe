@@ -46,14 +46,14 @@ export const ExecutionControls = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="font-mono">
-            Step {currentStep + 1} / {totalSteps}
+            Step {currentStep} / {totalSteps - 1}
           </Badge>
         </div>
 
         <div className="flex items-center gap-2">
           <Button onClick={handleReset} variant="outline" className="ml-auto">
-              Reset
-            </Button>
+            Reset
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -82,7 +82,7 @@ export const ExecutionControls = ({
               size="sm"
               onClick={onPlay}
               variant="default"
-              disabled={currentStep === totalSteps - 1}
+              disabled={currentStep === totalSteps}
             >
               <Play className="h-4 w-4 mr-2" />
               Play
@@ -108,7 +108,7 @@ export const ExecutionControls = ({
           </Button>
         </div>
       </div>
-      <div className="flex">
+      <div className="flex gap-2">
         <Slider
           value={[currentStep]}
           min={0}
@@ -122,7 +122,7 @@ export const ExecutionControls = ({
             {speed.toFixed(2)}x
           </span>
           <Slider
-          min={0.25}
+            min={0.25}
             max={5}
             step={0.25}
             value={[speed]}

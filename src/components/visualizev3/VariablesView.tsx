@@ -10,18 +10,39 @@ interface VariablesViewProps {
 
 export const VariablesView = ({ globals, orderedGlobals, heap }: VariablesViewProps) => {
   const renderValue = (value: any): string => {
-    if (Array.isArray(value) && value[0] === "REF") {
-      const refId = value[1];
-      if (heap[refId]) {
-        return heap[refId][1] || `<ref ${refId}>`;
-      }
+  // Handle REF to heap
+  if (Array.isArray(value) && value[0] === "REF") {
+    const refId = String(value[1]);
+    const entry = heap[refId];
+    if (!entry) {
       return `<ref ${refId}>`;
     }
-    if (typeof value === 'object') {
-      return JSON.stringify(value);
+
+    const [tag, payload] = entry as [string, any];
+
+    if (tag === "FUNCTION" || tag === "CLASS") {
+      // payload is the name/signature string
+      return String(payload);
     }
+    if (tag === "INSTANCE") {
+      // payload is className
+      return `${payload} instance`;
+    }
+    if (tag === "LIST") {
+      return JSON.stringify(payload); // payload is the list contents
+    }
+    if (tag === "DICT") {
+      return JSON.stringify(payload); // payload is the dict object {name, age}
+    }
+    return `<ref ${refId}>`;
+  }
+
+  if (value === null || typeof value !== "object") {
     return String(value);
-  };
+  }
+  return JSON.stringify(value);
+};
+
 
   return (
     <Card className="h-full overflow-auto">

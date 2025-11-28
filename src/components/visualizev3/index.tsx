@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -12,12 +13,6 @@ import { CodeMirrorDisplay } from "./CodeMirrorDisplay";
 import { Button } from "@/src/helper/button";
 import { SAMPLE_PROGRAMS } from "@/src/helper/samples";
 
-const sampleCode = `def sample_code():
-  x = 10
-  y = 20
-  z = x + y
-  print("Sum:", z)
-sample_code()`;
 
 const VisualizeV3 = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -128,58 +123,6 @@ const VisualizeV3 = () => {
     }
   };
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        if (isPlaying) handlePause();
-        else handlePlay();
-      }
-
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        handleStepForward();
-      }
-
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        handleStepBackward();
-      }
-
-      if (e.key === "Home") {
-        e.preventDefault();
-        handleFirst();
-      }
-
-      if (e.key === "End") {
-        e.preventDefault();
-        handleLast();
-      }
-
-      if (e.shiftKey && e.key === "ArrowUp") {
-        setSpeed(Math.min(speed + 0.25, 5));
-      }
-
-      if (e.shiftKey && e.key === "ArrowDown") {
-        setSpeed(Math.max(speed - 0.25, 0.25));
-      }
-    };
-
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [
-    isPlaying,
-    currentStep,
-    speed,
-    handlePlay,
-    handlePause,
-    handleStepForward,
-    handleStepBackward,
-    handleFirst,
-    handleLast,
-    setSpeed,
-  ]);
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -283,7 +226,10 @@ const VisualizeV3 = () => {
             {/* Stack */}
             <div className="h-[300px] rounded-lg border-1 border-primary/110 p-1">
               {trace.length > 0 ? (
-                <CallStack frames={currentState?.stack_to_render ?? []} />
+                <CallStack
+                    frames={currentState?.stack_to_render ?? []}
+                    heap={currentState?.heap}
+                  />
               ) : (
                 <p className="text-m text-muted-foreground p-4">
                   Call stack will appear here.
