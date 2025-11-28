@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/traceTypes.ts
 
 export type RefValue = ["REF", number];
 export type Primitive = string | number | boolean | null;

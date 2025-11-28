@@ -2,7 +2,7 @@
 import { Badge } from "@/src/helper/badge";
 import { Card } from "@/src/helper/card";
 import { renderRef } from "@/src/helper/RenderRed";
-import { EncodedValue } from "@/src/utils/Types";
+import { EncodedValue } from "@/src/utils/types";
 import { useEffect, useRef } from "react";
 
 interface HeapVisualizationProps {

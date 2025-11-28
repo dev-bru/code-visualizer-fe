@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card } from "@/src/helper/card";
 import { Badge } from "@/src/helper/badge";
-import { EncodedValue } from "@/src/utils/Types";
+import { EncodedValue } from "@/src/utils/types";
 import { renderRef } from "@/src/helper/RenderRed";
 
 interface VariablesViewProps {
