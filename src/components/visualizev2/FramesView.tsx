@@ -1,7 +1,8 @@
 // components/FramesView.tsx
 "use client";
 
-import { formatValue, TraceStep } from "@/src/utils/types";
+import { TraceStep } from "@/src/utils/Types";
+import { formatValue } from "@/src/utils/Utils";
 import React from "react";
 
 interface Props {

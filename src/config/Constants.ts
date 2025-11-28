@@ -1,3 +1,5 @@
+import { ReduxState } from "../utils/Types";
+
 export const CODE = {
   OK_CODE: 200,
   CREATED: 201,
@@ -12,4 +14,11 @@ export const CODE = {
   CONFLICT: 409,
   TIMEOUT: 408,
   UNPROCESSABLE_CONTENT: 422,
+};
+
+export const initialState: ReduxState = {
+  status: false,
+  loading: false,
+  data: null,
+  error: null,
 };

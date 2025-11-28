@@ -2,7 +2,7 @@
 // app/visualizer/page.tsx
 "use client";
 
-import { TraceStep } from "@/src/utils/types";
+import { TraceStep } from "@/src/utils/Types";
 import React, { useEffect, useState } from "react";
 import { FramesView } from "./FramesView";
 import { HeapView } from "./HeapView";

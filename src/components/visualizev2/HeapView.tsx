@@ -1,7 +1,8 @@
 // components/HeapView.tsx
 "use client";
 
-import { formatValue, HeapObject, parseHeap, TraceStep } from "@/src/utils/types";
+import { HeapObject, TraceStep } from "@/src/utils/Types";
+import { formatValue, parseHeap } from "@/src/utils/Utils";
 import React from "react";
 
 interface Props {
@@ -39,7 +40,9 @@ const HeapCard: React.FC<{ obj: HeapObject }> = ({ obj }) => {
     case "CLASS":
       return (
         <div className={cardBase}>
-          <div className="font-semibold mb-1">Class {obj.name} (#{obj.id})</div>
+          <div className="font-semibold mb-1">
+            Class {obj.name} (#{obj.id})
+          </div>
           <div className="space-y-0.5">
             {obj.methods.map((m) => (
               <div key={m.name} className="font-mono">
@@ -68,7 +71,9 @@ const HeapCard: React.FC<{ obj: HeapObject }> = ({ obj }) => {
       return (
         <div className={cardBase}>
           <div className="font-semibold mb-1">list #{obj.id}</div>
-          <div className="font-mono">[{obj.items.map(formatValue).join(", ")}]</div>
+          <div className="font-mono">
+            [{obj.items.map(formatValue).join(", ")}]
+          </div>
         </div>
       );
     case "DICT":

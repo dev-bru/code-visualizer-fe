@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Code2 } from "lucide-react";
+import { Code, Code2 } from "lucide-react";
 import { CallStack } from "./CallStack";
 import { ExecutionControls } from "./ExecutionControls";
 import { HeapVisualization } from "./HeapVisualization";
@@ -12,10 +12,18 @@ import { VariablesView } from "./VariablesView";
 import { CodeMirrorDisplay } from "./CodeMirrorDisplay";
 import { Button } from "@/src/helper/button";
 import { SAMPLE_PROGRAMS } from "@/src/helper/samples";
-import { ArrowsOverlay } from "@/src/helper/ArrowsOverlay";
 import { ComplexityAnalysis } from "./ComplexityAnalysis";
+import { useAppDispatch, useAppSelector } from "@/src/store";
+import { codeVisualizerAction } from "@/src/store/slices/visuals/thunk";
+import { codeComplexityState } from "@/src/store/slices/complexity/selectors";
+import { codeVisualizerState } from "@/src/store/slices/visuals/selectors";
+import { codeComplexityAction } from "@/src/store/slices/complexity/thunk";
+import { ArrowsOverlay } from "@/src/helper/ArrowsOverlay";
 
 const VisualizeV3 = () => {
+  const dispatch = useAppDispatch();
+  const CodeVisualizerState = useAppSelector(codeVisualizerState);
+  const CodeComplexityState = useAppSelector(codeComplexityState);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [trace, setTrace] = useState<any[]>([]);
@@ -52,50 +60,57 @@ const VisualizeV3 = () => {
     return () => clearTimeout(timer);
   }, [speed, isPlaying, currentStep, trace.length]);
 
+  useEffect(() => {
+    if (
+      CodeVisualizerState?.data &&
+      CodeVisualizerState?.status &&
+      !CodeVisualizerState?.loading
+    ) {
+      setTrace(CodeVisualizerState?.data?.trace);
+      setHasUserEdited(false);
+      setIsLocked(true);
+    }
+  }, [CodeVisualizerState]);
+
+  useEffect(() => {
+    if (
+      CodeComplexityState?.data &&
+      CodeComplexityState?.status &&
+      !CodeComplexityState?.loading
+    ) {
+      setComplexityInfo(CodeComplexityState?.data);
+    }
+  }, [CodeComplexityState]);
+
   const runVisualization = async () => {
     try {
       setIsPlaying(false);
       setCurrentStep(0);
-
-      const res = await fetch(BACKEND_URL + "visualize/trace", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          language: "python",
-          stdin: "",
-          timeout: 10,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        setError(data.error);
-        setTrace([]);
-        return;
-      }
-
-      const res2 = await fetch(BACKEND_URL + "analyze-complexity", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          language: "python",
-          stdin: "",
-          timeout: 10,
-        }),
-      });
-
-      const data2 = await res2.json();
-      setComplexityInfo(data2);
-      setTrace(data.trace);
-      setHasUserEdited(false);
-      setIsLocked(true);
+      dispatch(
+        codeVisualizerAction({
+          payload: {
+            code,
+            language: "python",
+            stdin: "",
+            timeout: 10,
+          },
+        })
+      );
+      dispatch(
+        codeComplexityAction({
+          payload: {
+            code,
+            language: "python",
+            stdin: "",
+            timeout: 10,
+          },
+        })
+      );
     } catch (err: any) {
       setError(err.message);
     }
   };
+
   const handleReset = () => {
     setIsPlaying(false);
     setCurrentStep(0);
@@ -106,32 +121,27 @@ const VisualizeV3 = () => {
   };
 
   const handleFirst = useCallback(() => {
-    runVisualization();
     setCurrentStep(0);
     setIsLocked(true);
-  }, [runVisualization, setCurrentStep, setIsLocked]);
+  }, [setCurrentStep, setIsLocked]);
 
   const handleLast = () => {
-    runVisualization();
     setCurrentStep(trace.length - 1);
     setIsLocked(true);
   };
 
   const handlePlay = async () => {
-    runVisualization();
     setIsPlaying(true);
     setIsLocked(true);
   };
   const handlePause = () => setIsPlaying(false);
   const handleStepForward = () => {
-    runVisualization();
     setIsLocked(true);
     if (currentStep < trace.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
   const handleStepBackward = () => {
-    runVisualization();
     setIsLocked(true);
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -242,6 +252,7 @@ const VisualizeV3 = () => {
 
           {/* RIGHT SIDE */}
           <div className="flex space-x-3 max-h-[630px] min-h-0">
+            <ArrowsOverlay step={currentStep} />
             {/* Stack */}
             <div className="flex flex-col w-1/2 space-y-3 h-full min-h-0">
               <div className="flex-1 rounded-lg border-1 border-primary/110 p-1 min-h-0">
