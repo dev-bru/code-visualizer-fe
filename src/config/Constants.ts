@@ -1,4 +1,4 @@
-import { ReduxState } from "../utils/Types";
+import { ReduxState } from "../utils/types";
 
 export const CODE = {
   OK_CODE: 200,

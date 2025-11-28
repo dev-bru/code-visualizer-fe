@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/src/helper/button";
 import { Card } from "@/src/helper/card";
 import { Code2 } from "lucide-react";
+import Image from "next/image";
 
 function Navbar() {
   return (
@@ -40,7 +41,7 @@ function Navbar() {
             <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-primary transition-all duration-300 group-hover:w-full" />
           </Link>
 
-          <Link href="/visualize/v2">
+          <Link href="/visualize">
             <Button className="px-4 py-2 transition-all duration-300 hover:scale-[1.05] hover:shadow-md">
               Launch Visualizer
             </Button>
@@ -76,7 +77,7 @@ export default function VisualizerHome() {
             </p>
 
             <div className="flex gap-4">
-              <Link href="/visualize/v2">
+              <Link href="/visualize">
                 <Button
                   size="lg"
                   className="px-8 py-5 text-lg transition-all duration-300 hover:shadow-lg hover:scale-105"
@@ -99,10 +100,13 @@ export default function VisualizerHome() {
 
           {/* RIGHT: GIF */}
           <div className="flex justify-center md:justify-end">
-            <img
+            <Image
               src="/demo-visualizer.gif"
               alt="Python Visualizer Demo"
               className="w-full max-w-xxl rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+              width={0}
+              height={0}
+              unoptimized
             />
           </div>
         </div>
@@ -116,7 +120,7 @@ export default function VisualizerHome() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[ 
+            {[
               {
                 title: "Live Execution Flow",
                 desc: "Highlight the current line and follow control flow step-by-step.",

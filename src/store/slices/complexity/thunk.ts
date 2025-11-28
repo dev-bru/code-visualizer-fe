@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { POSTAPI } from "@/src/api/api";
 import { ApiConfig } from "@/src/config/CommonConfig";
-import { PayloadParams1 } from "@/src/utils/Types";
+import { PayloadParams1 } from "@/src/utils/types";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const codeComplexityAction = createAsyncThunk(
