@@ -143,14 +143,18 @@ const VisualizeV3 = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container px-4 py-2 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Code2 className="h-6 w-6 text-primary" />
-          </div>
-
           <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Python Code Visualizer
-            </h1>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10 flex justify-center items-center gap-2">
+                <Code2 className="h-6 w-6 text-primary" />
+                <span className="font-bold text-primary text-lg">
+                  CodeTrace
+                </span>
+              </div>
+              <span className="text-foreground font-semibold">
+                Python Code Visualizer
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">
               Step through Python code execution and visualize how it works
             </p>
